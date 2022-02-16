@@ -1,6 +1,8 @@
 # Reto Quehaceres Categorizados
 *Disclaimer: No está planeado que haya más que este reto.*
 
+## Avisos
+
 ## Introducción
 
 Me surgió una idea para una aplicación simple y pensé "¿Cómo la haría otra gente?", y cuando le comentaba a un amigo se me ocurrió que invitar a más gente para ver todas las diferencias podría ser algo **interesante**, **divertido** y quizás, **enriquecedor**.
