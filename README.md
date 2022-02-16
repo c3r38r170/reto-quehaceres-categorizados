@@ -1,7 +1,7 @@
 # Reto Quehaceres Categorizados
 *Disclaimer: No está planeado que haya más que este reto.*
 
-## Avisos
+## **Avisos**
 - 16/02/2022: Se extiende la fecha límite a las 19:00 hs del **Lunes 21/02/2022**
 
 ## Introducción
