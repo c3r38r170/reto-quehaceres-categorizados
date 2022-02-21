@@ -3,6 +3,7 @@
 
 ## **Avisos**
 - 16/02/2022: Se extiende la fecha límite a las 19:00 hs del **Lunes 21/02/2022**
+- 21/02/2022: Se elimina la fecha límite, pero solo serán aceptados los proyectos que están en desarrollo.
 
 ## Introducción
 
@@ -48,7 +49,6 @@ Una vez subido el proyecto terminado, hacen una *pull request*, y si quieren, me
 
 Algunas pautas:
 - Obviamente el proyecto debe tener lo que dice la sección de [Aplicación](#aplicación).
-- **Fecha límite:** 21/02/2022 19:00hs
 - **NO** editar los archivos existentes ni hacer nada fuera de su carpeta. No les acepto las *PR*.
 - **NO** hacer ningún cambio a este repositorio. Ojalá pudiera directamente evitarlo pero en GitHub no es posible. Los cambios serán deshechos y serán eliminados como colaboradores.
 - Incluyan un *README* en sus proyectos explicándolo y preferentemente mostrándolo con imágenes. Sería bonito si lo ponen ganas.
