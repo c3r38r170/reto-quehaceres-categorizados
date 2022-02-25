@@ -27,6 +27,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import Button from '@mui/material/Button'
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 const top100Films = [
   { title: 'The Shawshank Redemption', year: 1994 },
@@ -315,9 +316,14 @@ function App() {
                       </Avatar>
                     }
                     action={
+                      <>
                       <IconButton>
                         <CheckIcon/>
                       </IconButton>
+                      <IconButton>
+                        <RemoveCircleOutlineIcon/>
+                      </IconButton>
+                      </>
                     }
                     title={task.taskName}
                     subheader={`${task.taskDate} | ${task.taskType}`}
