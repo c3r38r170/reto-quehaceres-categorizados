@@ -8,21 +8,25 @@ import Stack from '@mui/material/Stack'
 import AddBoxIcon from '@mui/icons-material/AddBox'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import Card from '@mui/material/Card'
-import Avatar from '@mui/material/Avatar';
-import CardHeader from '@mui/material/CardHeader';
+import Avatar from '@mui/material/Avatar'
+import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import CardActions from '@mui/material/CardActions'
-import CardActionArea from '@mui/material/CardActionArea'
 import Typography from '@mui/material/Typography'
 import CssBaseline from '@mui/material/CssBaseline'
 import ThemeProvider from '@mui/material/styles/ThemeProvider'
 import createTheme from '@mui/material/styles/createTheme'
-import ToggleButton from '@mui/material/ToggleButton'
 import CheckIcon from '@mui/icons-material/Check'
 import Divider from '@mui/material/Divider'
-
+import Box from '@mui/material/Box'
+import Modal from '@mui/material/Modal'
+import AdapterDateFns from '@mui/lab/AdapterDateFns'
+import LocalizationProvider from '@mui/lab/LocalizationProvider'
+import DatePicker from '@mui/lab/DatePicker'
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 import Button from '@mui/material/Button'
-import { red } from '@mui/material/colors'
 
 const top100Films = [
   { title: 'The Shawshank Redemption', year: 1994 },
@@ -149,7 +153,7 @@ const top100Films = [
   { title: 'Snatch', year: 2000 },
   { title: '3 Idiots', year: 2009 },
   { title: 'Monty Python and the Holy Grail', year: 1975 },
-];
+]
 
 const themeLight = createTheme({
   palette: {
@@ -157,7 +161,7 @@ const themeLight = createTheme({
       default: "#F7F7F7"
     }
   }
-});
+})
 
 const themeDark = createTheme({
   palette: {
@@ -168,101 +172,201 @@ const themeDark = createTheme({
       primary: "#ffffff"
     }
   }
-});
+})
+
+const style = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+}
+
+interface iTask {
+  taskName: string,
+  taskType: string,
+  taskDate: Date | null,
+  taskDescription: string,
+}
 
 function App() {
-  const [list, setList] = useState([])
+  //Modal
+  const [openModal, setOpenModal] = useState(false)
+  const handleClose = () => setOpenModal(false)
+  const [date, setDate] = useState<Date | null>(null)
+  const [type, setType] = useState('');
+  const handleChangeType = (event: SelectChangeEvent) => {
+    setType(event.target.value as string);
+  }
+  const [name, setName] = useState('')
+  const handleChangeName = (e: any) => {
+    setName(e.target.value)
+  }
+  const [desc, setDesc] = useState('')
+  const handleChangeDesc = (e: any) => {
+    setDesc(e.target.value)
+  }
+  //List
+  const [list, setList] = useState<iTask[]>([])
   const [completedList, setCompletedList] = useState([])
-  const [light, setLight] = React.useState(true)
-  const [selected, setSelected] = React.useState(false);
+  const [selected, setSelected] = useState(false);
+  //Misc
+  const [light, setLight] = useState(true)
 
+
+  const addNewTask = () => {
+    setList([...list, {
+      taskName: name,
+      taskType: type,
+      taskDate: date,
+      taskDescription: desc,
+    }])
+    setDate(null)
+    setType('')
+    setName('')
+    setDesc('')
+    handleClose()
+  }
 
   return (
-    <ThemeProvider theme={light ? themeLight : themeDark}>
-      <CssBaseline/>
-      <Grid className="main" sx={{padding: 2}}>
-        <Stack direction="row" spacing={2}>
-          <Autocomplete
-            id="search-bar"
-            freeSolo
-            options={top100Films.map((option) => option.title)}
-            renderInput={(params) => <TextField {...params} label="Search task"/>}
-            sx={{width: '95%'}}
-          />
-          <IconButton color="primary" aria-label="filter-list" sx={{borderRadius: '20%', width: 50}}>
-            <FilterListIcon/>
-          </IconButton>
-          <IconButton color="primary" aria-label="add-task" sx={{borderRadius: '20%', width: 50}}>
-            <AddBoxIcon/>
-          </IconButton>
-        </Stack>
-        <Grid
-          container
-          direction="column"
-          justifyContent="center"
-          alignItems="center"
-          sx={{paddingTop: 2, paddingBottom: 1}}
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <ThemeProvider theme={light ? themeLight : themeDark}>
+        <CssBaseline/>
+        <Modal
+          open={openModal}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
         >
-          <Typography variant="h5">ACTIVE</Typography>
-        </Grid>
-        <Grid
-        >
-          <Card sx={{ maxWidth: '100%', marginBottom: 2 }}>
-            <CardHeader
-              avatar={
-                <Avatar sx={{ bgcolor: 'purple' }} aria-label="recipe">
-                  N
-                </Avatar>
-              }
-              action={
-                <IconButton>
-                  <CheckIcon/>
-                </IconButton>
-              }
-              title="Task Title"
-              subheader="25/2/2022 12:33hs | Task Type"
+          <Box sx={style}>
+            <Grid
+              container
+              direction="column"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Typography variant='h5' sx={{mb: 3}}>Enter new task</Typography>
+              <TextField id='name' label='Enter a task title' fullWidth  value={name} onChange={handleChangeName} sx={{mb: 2}}/>
+              <FormControl fullWidth sx={{mb: 2}}>
+                <InputLabel id="type-label">Select a task type</InputLabel>
+                <Select
+                  labelId="type-select"
+                  id="type-select"
+                  value={type}
+                  label="Type"
+                  onChange={handleChangeType}
+                >
+                  <MenuItem value={'Work'}>Work</MenuItem>
+                  <MenuItem value={'University'}>University</MenuItem>
+                  <MenuItem value={'Other'}>Other</MenuItem>
+                </Select>
+              </FormControl>
+              <DatePicker
+                label="Pick a date"
+                value={date}
+                onChange={(newValue) => {
+                  setDate(newValue);
+                }}
+                renderInput={(params) => <TextField {...params} fullWidth  sx={{mb: 2}}/>}
+              />
+              <TextField id='task-description' label='Enter a task description' fullWidth multiline value={desc} onChange={handleChangeDesc} sx={{mb: 2}}/>
+              <Button variant='outlined' onClick={() => addNewTask()}>Done</Button>
+            </Grid>
+          </Box>
+        </Modal>
+        <Grid className="main" sx={{padding: 2}}>
+          <Stack direction="row" spacing={2}>
+            <Autocomplete
+              id="search-bar"
+              freeSolo
+              options={top100Films.map((option) => option.title)}
+              renderInput={(params) => <TextField {...params} label="Search task"/>}
+              sx={{width: '95%'}}
             />
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Hic ex porro iste eligendi eius, magni corporis blanditiis commodi consequuntur neque officia cum fugiat reprehenderit doloribus?
-              </Typography>
-            </CardContent>
-          </Card>
+            <IconButton color="primary" aria-label="filter-list" sx={{borderRadius: '20%', width: 50}}>
+              <FilterListIcon/>
+            </IconButton>
+            <IconButton color="primary" aria-label="add-task" sx={{borderRadius: '20%', width: 50}} onClick={() => setOpenModal(true)}>
+              <AddBoxIcon/>
+            </IconButton>
+          </Stack>
+          <Grid
+            container
+            direction="column"
+            justifyContent="center"
+            alignItems="center"
+            sx={{paddingTop: 2, paddingBottom: 1}}
+          >
+            <Typography variant="h5">ACTIVE</Typography>
+          </Grid>
+          <Grid
+          >
+            {list.map(task => {
+              return (
+                <Card sx={{ maxWidth: '100%', marginBottom: 2 }}>
+                  <CardHeader
+                    avatar={
+                      <Avatar sx={{ bgcolor: 'purple' }} aria-label="recipe">
+                        N
+                      </Avatar>
+                    }
+                    action={
+                      <IconButton>
+                        <CheckIcon/>
+                      </IconButton>
+                    }
+                    title={task.taskName}
+                    subheader={`${task.taskDate} | ${task.taskType}`}
+                  />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      {task.taskDescription}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              )
+            })}
+            
+          </Grid>
+          <Divider/>
+          <Grid
+            container
+            direction="column"
+            justifyContent="center"
+            alignItems="center"
+            sx={{paddingTop: 2, paddingBottom: 1}}
+          >
+            <Typography variant="h5">COMPLETED</Typography>
+          </Grid>
+          <Grid>
+            <Card sx={{ maxWidth: '100%', marginBottom: 2 }}>
+              <CardHeader
+                avatar={
+                  <Avatar sx={{ bgcolor: 'purple' }} aria-label="recipe">
+                    N
+                  </Avatar>}
+                action={
+                  <IconButton>
+                    <CheckIcon/>
+                  </IconButton>
+                }
+                title="Task Title"
+                subheader="25/2/2022 12:33hs | Task Type"
+              />
+              <CardContent>
+                <Typography variant="body2" color="text.secondary">
+                  Lorem, ipsum dolor sit amet consectetur adipisicing elit. Hic ex porro iste eligendi eius, magni corporis blanditiis commodi consequuntur neque officia cum fugiat reprehenderit doloribus?
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        <Divider/>
-        <Grid
-          container
-          direction="column"
-          justifyContent="center"
-          alignItems="center"
-          sx={{paddingTop: 2, paddingBottom: 1}}
-        >
-          <Typography variant="h5">COMPLETED</Typography>
-        </Grid>
-        <Grid>
-          <Card sx={{ maxWidth: '100%', marginBottom: 2 }}>
-            <CardHeader
-              avatar={
-                <Avatar sx={{ bgcolor: 'purple' }} aria-label="recipe">
-                  N
-                </Avatar>}
-              action={
-                <IconButton>
-                  <CheckIcon/>
-                </IconButton>
-              }
-              title="Task Title"
-              subheader="25/2/2022 12:33hs | Task Type"
-            />
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Hic ex porro iste eligendi eius, magni corporis blanditiis commodi consequuntur neque officia cum fugiat reprehenderit doloribus?
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </ThemeProvider>
+      </ThemeProvider>
+    </LocalizationProvider>
   );
 }
 
