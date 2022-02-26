@@ -22,12 +22,13 @@ import Modal from '@mui/material/Modal'
 import AdapterDateFns from '@mui/lab/AdapterDateFns'
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import DatePicker from '@mui/lab/DatePicker'
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import TimePicker from '@mui/lab/TimePicker'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import Select, { SelectChangeEvent } from '@mui/material/Select'
 import Button from '@mui/material/Button'
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 
 const top100Films = [
   { title: 'The Shawshank Redemption', year: 1994 },
@@ -156,6 +157,21 @@ const top100Films = [
   { title: 'Monty Python and the Holy Grail', year: 1975 },
 ]
 
+const shortMonths = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+]
+
 const themeLight = createTheme({
   palette: {
     background: {
@@ -191,6 +207,7 @@ interface iTask {
   taskName: string,
   taskType: string,
   taskDate: Date | null,
+  taskTime: Date | null,
   taskDescription: string,
 }
 
@@ -199,6 +216,7 @@ function App() {
   const [openModal, setOpenModal] = useState(false)
   const handleClose = () => setOpenModal(false)
   const [date, setDate] = useState<Date | null>(null)
+  const [time, setTime] = useState(null)
   const [type, setType] = useState('');
   const handleChangeType = (event: SelectChangeEvent) => {
     setType(event.target.value as string);
@@ -224,12 +242,14 @@ function App() {
       taskName: name,
       taskType: type,
       taskDate: date,
+      taskTime: time,
       taskDescription: desc,
     }])
     setDate(null)
     setType('')
     setName('')
     setDesc('')
+    setTime(null)
     handleClose()
   }
 
@@ -243,7 +263,7 @@ function App() {
     const name = e.target.getAttribute("name")
      setList(list.filter(item => item.taskName !== name));
    };
-
+  
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <ThemeProvider theme={light ? themeLight : themeDark}>
@@ -282,6 +302,14 @@ function App() {
                 value={date}
                 onChange={(newValue) => {
                   setDate(newValue);
+                }}
+                renderInput={(params) => <TextField {...params} fullWidth  sx={{mb: 2}}/>}
+              />
+              <TimePicker
+                label="Pick a time"
+                value={time}
+                onChange={(newValue) => {
+                  setTime(newValue);
                 }}
                 renderInput={(params) => <TextField {...params} fullWidth  sx={{mb: 2}}/>}
               />
@@ -337,7 +365,7 @@ function App() {
                       </>
                     }
                     title={task.taskName}
-                    subheader={`${task.taskDate} | ${task.taskType}`}
+                    subheader={`${task.taskDate?.getDay()}/${(task.taskDate?.getMonth() || 0) +1}/${task.taskDate?.getFullYear()} ${task.taskTime?.getHours()}:${task.taskTime?.getMinutes()}hs | ${task.taskType}`}
                   />
                   <CardContent>
                     <Typography variant="body2" color="text.secondary">
@@ -374,7 +402,7 @@ function App() {
                       </IconButton>
                     }
                     title={task.taskName}
-                    subheader={`${task.taskDate} | ${task.taskType}`}
+                    subheader={`${task.taskDate?.getDay}.${task.taskDate?.getMonth}.${task.taskDate?.getFullYear} ${task.taskTime?.getTime} | ${task.taskType}`}
                   />
                   <CardContent>
                     <Typography variant="body2" color="text.secondary">
