@@ -213,13 +213,13 @@ function App() {
   }
   //List
   const [list, setList] = useState<iTask[]>([])
-  const [completedList, setCompletedList] = useState([])
+  const [completedList, setCompletedList] = useState<iTask[]>([])
   const [selected, setSelected] = useState(false);
   //Misc
   const [light, setLight] = useState(true)
 
 
-  const addNewTask = () => {
+  const handleAddNewTask = () => {
     setList([...list, {
       taskName: name,
       taskType: type,
@@ -232,6 +232,17 @@ function App() {
     setDesc('')
     handleClose()
   }
+
+  const handleCompleteTask = (index: number) => {
+    setCompletedList([...completedList, list[index]])
+    setList(list.splice(index))
+    console.info(`${index} remove`)
+  }
+
+  const handleRemoveItem = (e: any) => {
+    const name = e.target.getAttribute("name")
+     setList(list.filter(item => item.taskName !== name));
+   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -275,7 +286,7 @@ function App() {
                 renderInput={(params) => <TextField {...params} fullWidth  sx={{mb: 2}}/>}
               />
               <TextField id='task-description' label='Enter a task description' fullWidth multiline value={desc} onChange={handleChangeDesc} sx={{mb: 2}}/>
-              <Button variant='outlined' onClick={() => addNewTask()}>Done</Button>
+              <Button variant='outlined' onClick={() => handleAddNewTask()}>Done</Button>
             </Grid>
           </Box>
         </Modal>
@@ -306,9 +317,9 @@ function App() {
           </Grid>
           <Grid
           >
-            {list.map(task => {
+            {list.map((task, index) => {
               return (
-                <Card sx={{ maxWidth: '100%', marginBottom: 2 }}>
+                <Card sx={{ maxWidth: '100%', marginBottom: 2 }} key={`task-${index}`}>
                   <CardHeader
                     avatar={
                       <Avatar sx={{ bgcolor: 'purple' }} aria-label="recipe">
@@ -317,7 +328,7 @@ function App() {
                     }
                     action={
                       <>
-                      <IconButton>
+                      <IconButton onClick={()=>handleCompleteTask(index)}>
                         <CheckIcon/>
                       </IconButton>
                       <IconButton>
@@ -336,7 +347,6 @@ function App() {
                 </Card>
               )
             })}
-            
           </Grid>
           <Divider/>
           <Grid
@@ -349,26 +359,31 @@ function App() {
             <Typography variant="h5">COMPLETED</Typography>
           </Grid>
           <Grid>
-            <Card sx={{ maxWidth: '100%', marginBottom: 2 }}>
-              <CardHeader
-                avatar={
-                  <Avatar sx={{ bgcolor: 'purple' }} aria-label="recipe">
-                    N
-                  </Avatar>}
-                action={
-                  <IconButton>
-                    <CheckIcon/>
-                  </IconButton>
-                }
-                title="Task Title"
-                subheader="25/2/2022 12:33hs | Task Type"
-              />
-              <CardContent>
-                <Typography variant="body2" color="text.secondary">
-                  Lorem, ipsum dolor sit amet consectetur adipisicing elit. Hic ex porro iste eligendi eius, magni corporis blanditiis commodi consequuntur neque officia cum fugiat reprehenderit doloribus?
-                </Typography>
-              </CardContent>
-            </Card>
+            {completedList.map((task, index) => {
+              return (
+                <Card sx={{ maxWidth: '100%', marginBottom: 2 }} key={`task-${index}`}>
+                  <CardHeader
+                    avatar={
+                      <Avatar sx={{ bgcolor: 'purple' }} aria-label="recipe">
+                        N
+                      </Avatar>
+                    }
+                    action={
+                      <IconButton>
+                        <RemoveCircleOutlineIcon/>
+                      </IconButton>
+                    }
+                    title={task.taskName}
+                    subheader={`${task.taskDate} | ${task.taskType}`}
+                  />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      {task.taskDescription}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </Grid>
         </Grid>
       </ThemeProvider>
