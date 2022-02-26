@@ -157,20 +157,6 @@ const top100Films = [
   { title: 'Monty Python and the Holy Grail', year: 1975 },
 ]
 
-const shortMonths = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-]
 
 const themeLight = createTheme({
   palette: {
@@ -204,6 +190,7 @@ const style = {
 }
 
 interface iTask {
+  id: number,
   taskName: string,
   taskType: string,
   taskDate: Date | null,
@@ -235,6 +222,7 @@ function App() {
   const [selected, setSelected] = useState(false);
   //Misc
   const [light, setLight] = useState(true)
+  const [search, setSearch] = useState('')
 
 
   const handleAddNewTask = () => {
@@ -244,6 +232,7 @@ function App() {
       taskDate: date,
       taskTime: time,
       taskDescription: desc,
+      id: Math.random(),
     }])
     setDate(null)
     setType('')
@@ -252,17 +241,14 @@ function App() {
     setTime(null)
     handleClose()
   }
-
-  const handleCompleteTask = (index: number) => {
+  const handleCompleteTask = (index: number, id: number) => {
     setCompletedList([...completedList, list[index]])
-    setList(list.splice(index))
-    console.info(`${index} remove`)
+    setList(list.filter(item => item.id !== id))
   }
-
-  const handleRemoveItem = (e: any) => {
-    const name = e.target.getAttribute("name")
-     setList(list.filter(item => item.taskName !== name));
-   };
+  const handleMoveToActive = (index: number, id: number) => {
+    setList([...list, completedList[index]])
+    setCompletedList(list.filter(item => item.id !== id))
+  }
   
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -323,8 +309,8 @@ function App() {
             <Autocomplete
               id="search-bar"
               freeSolo
-              options={top100Films.map((option) => option.title)}
-              renderInput={(params) => <TextField {...params} label="Search task"/>}
+              options={list.map((task) => task.taskName)}
+              renderInput={(params) => <TextField {...params} label="Search task" value={search} onChange={(event) => setSearch(event.target.value)}/>}
               sx={{width: '95%'}}
             />
             <IconButton color="primary" aria-label="filter-list" sx={{borderRadius: '20%', width: 50}}>
@@ -345,7 +331,13 @@ function App() {
           </Grid>
           <Grid
           >
-            {list.map((task, index) => {
+            {list.filter((task)=>{
+              if(search === ''){
+                return task
+              } else if (task.taskName.toLowerCase().includes(search.toLowerCase())) {
+                return task
+              }
+            }).map((task, index) => {
               return (
                 <Card sx={{ maxWidth: '100%', marginBottom: 2 }} key={`task-${index}`}>
                   <CardHeader
@@ -356,12 +348,12 @@ function App() {
                     }
                     action={
                       <>
-                      <IconButton onClick={()=>handleCompleteTask(index)}>
-                        <CheckIcon/>
-                      </IconButton>
-                      <IconButton>
-                        <RemoveCircleOutlineIcon/>
-                      </IconButton>
+                        <IconButton onClick={()=>handleCompleteTask(index, task.id)}>
+                          <CheckIcon/>
+                        </IconButton>
+                        <IconButton onClick={()=> setList(list.filter(item => item.id !== task.id))}>
+                          <RemoveCircleOutlineIcon/>
+                        </IconButton>
                       </>
                     }
                     title={task.taskName}
@@ -397,12 +389,17 @@ function App() {
                       </Avatar>
                     }
                     action={
-                      <IconButton>
-                        <RemoveCircleOutlineIcon/>
-                      </IconButton>
+                      <>
+                        <IconButton onClick={()=>handleMoveToActive(index, task.id)}>
+                          <CheckIcon/>
+                        </IconButton>
+                        <IconButton onClick={()=> setCompletedList(completedList.filter(item => item.id !== task.id))}>
+                          <RemoveCircleOutlineIcon/>
+                        </IconButton>
+                      </>
                     }
                     title={task.taskName}
-                    subheader={`${task.taskDate?.getDay}.${task.taskDate?.getMonth}.${task.taskDate?.getFullYear} ${task.taskTime?.getTime} | ${task.taskType}`}
+                    subheader={`${task.taskDate?.getDay()}/${(task.taskDate?.getMonth() || 0) +1}/${task.taskDate?.getFullYear()} ${task.taskTime?.getHours()}:${task.taskTime?.getMinutes()}hs | ${task.taskType}`}
                   />
                   <CardContent>
                     <Typography variant="body2" color="text.secondary">
