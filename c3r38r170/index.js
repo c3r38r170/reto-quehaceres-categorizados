@@ -3,9 +3,40 @@
 var catItems=gEt('cat-items')
 var listaPrincipal=[];
 var filtrablesIndexados={};
+var categorias=[];
 var moviendo=false;
+
 var cancelarElemento=gEt('cancelar');
 var cancelar=false;
+
+var cargarInput=createElement('INPUT',{
+	class:'hidden',
+	type:'file',
+	onchange:function(){
+		var fr=new FileReader();
+		fr.onload=()=>{
+			for(let categoria of categorias){
+				categoria.eliminar();
+			}
+
+			let info=JSON.parse(decodeURI(fr.result));
+			for (const categoria of info.categorias) {
+				new Categoria(...categoria);
+			}
+
+			Swal.fire({
+				icon: 'success',
+				title: 'Your work has been saved',
+				showConfirmButton: false,
+				timer: 1500
+			});
+		}
+		fr.readAsText(this.files[0]);
+
+		this.remove()
+	}
+});
+
 const REG_EXP={
 	DIACRITICOS:/[\u0300-\u036f]/g
 	,ESCAPES:/[-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g
@@ -28,8 +59,6 @@ const HANDLE_CLASS='.cat-items-agarrar';
 // TODO ghost class
 const ITEMS_DRAG_OPTIONS={
 	handle:HANDLE_CLASS
-	// ,placeholder:PLACEHOLDERS.item
-	// ,copy:true
 	
 	,group:{
 		name:"todo"
@@ -46,27 +75,26 @@ const ITEMS_DRAG_OPTIONS={
 
 		cancelarElemento.classList.remove('cancelar-mostrar');
 	}
-	,/* onMove:(nE,oE)=>{
-		if(oE.clientX && oE.clientY)
-			console.log(document.elementFromPoint(oE.clientX,oE.clientY))
-	} */
 };
 
 // * Clases
 
-// TODO edición
+// TODO edición, doble click
 
 class Filtrable{
-	id=Date.now().toString(36) + Math.random().toString(36).substring(2);
+	id;
 	descripcion;
 	descripcionNormalizada;
 	elementoHTML;
-	constructor(descripcion, elementoHTML){
-		this.descripcion=descripcion;
-		this.descripcionNormalizada=normalizarTexto(this.descripcion);
-		this.elementoHTML=elementoHTML;
+	constructor(descripcion, elementoHTML,id){
+		this.id=id||Date.now().toString(36) + Math.random().toString(36).substring(2);
 		filtrablesIndexados[this.id]=this;
-
+		
+		this.descripcion=descripcion;
+		console.log(arguments);
+		this.descripcionNormalizada=normalizarTexto(this.descripcion);
+		
+		this.elementoHTML=elementoHTML;
 		this.elementoHTML.dataset.id=this.id;
 	}
 }
@@ -76,12 +104,12 @@ class Categoria extends Filtrable{
 	itemsIndexados={};
 	colores={};
 
-  constructor(descripcion,color,items){
+  constructor(descripcion,color,items,id){
 		super(
 			descripcion
-			,addElement(catItems,['DETAILS',
+			,createElement('DETAILS',
 				{
-					class:'cat-item'
+					classList:['cat-item','filtrable']
 					,style:{
 						background:color
 					}
@@ -102,9 +130,12 @@ class Categoria extends Filtrable{
 											,children: [
 												[
 													'BUTTON'
-													,{classList:[
-														'fas','fa-trash-can','cat-items-eliminar'
-													]}
+													,{
+														classList:[
+															'fas','fa-trash-can','cat-items-eliminar'
+														]
+														,onclick:eliminar
+													}
 												]
 												,[
 													'SPAN'
@@ -124,38 +155,51 @@ class Categoria extends Filtrable{
 						]}]
 					]
 				}
-			])
+			)
+			,id
 		);
+		// TODO dry this
+		catItems.prepend(this.elementoHTML);
+
+		categorias.push(this);
 
 		this.colores.propio=color;
 		let tcColor=tinycolor(color);
 		this.colores.items=tcColor[tcColor.isDark()?'lighten':'darken'](10).toHexString();
 
+		// * Solo cuando se importa
 		if(items)
 			for (const item of items) {
-				this.aniadirItem(item);
+				this.aniadirItem(...item);
 			}
 
-		/* let contenedorDeItems=sortable(SqS('.cat-items-lista',{from:this.elementoHTML}),{
-			handle:HANDLE_CLASS
-			,placeholder:PLACEHOLDERS.item
-			,copy:true
-		})[0]; */
 		new Sortable(SqS('.cat-items-lista',{from:this.elementoHTML}),ITEMS_DRAG_OPTIONS);
 		
-		// contenedorDeItems.addEventListener('sortleave',sortleave);
-		// contenedorDeItems.addEventListener('sortstop',sortstop);
-
+	}
+	eliminar(){
+		// for (const itemID of this.items) {
+			// TODO delegar a Item
+			for(let item of [...SqS(
+				this.items.map(itemID=>{
+					delete filtrablesIndexados[itemID];
+					return `[data-id="${itemID}"]`;
+				}).join(',')
+				,{n:ALL}
+			)]){
+				item.remove();
+			}
+		// }
+		this.elementoHTML.remove();
+		delete filtrablesIndexados[this.id];
 	}
 	
-	aniadirItem(descripcion){
-		let newItem=new Item(descripcion);
+	aniadirItem(descripcion,id){
+		let newItem=new Item(descripcion,id);
 		newItem.elementoHTML.style.background=this.colores.items;
 		this.items.push(newItem.id);
 
 		let container=SqS('.cat-items-lista',{from:this.elementoHTML})
 		container.prepend(newItem.elementoHTML);
-		// sortable(container);
 	}
 	quitarItem(id){
 		// TODO
@@ -164,9 +208,9 @@ class Categoria extends Filtrable{
 }
 
 class Item extends Filtrable{
-	constructor(descripcion){
+	constructor(descripcion,id){
 		super(descripcion,createElement('DIV',{
-			class:'item'
+			classList:['item','filtrable']
 			,children: [
 				[
 					'INPUT',
@@ -186,7 +230,7 @@ class Item extends Filtrable{
 					,{class:'cat-items-agarrar'}
 				]
 			]
-		}));
+		}),id);
 	}
 }
 
@@ -226,6 +270,8 @@ function buscar(){
 		accion(filtrableElemento);
 }
 
+// TODO allow enter
+
 function crearItem(){
 	let textField=this.previousElementSibling;
 	let categoriaID=this.closest('details').dataset.id;
@@ -253,6 +299,51 @@ function clickPropio(){
 	cancelarElemento.classList.toggle('cancelar-mostrar');
 }
 
+function descargar(){
+	let enlace=addElement(D.body,['A',{
+		download:new Date().toISOString().slice(0, 10)+'.json',
+		class:'hidden',
+		href:'data:application/json;base64,'+btoa(encodeURI(JSON.stringify({
+			categorias:[...catItems.children].reverse().map(el=>{
+				let cat=filtrablesIndexados[el.dataset.id]
+				return [
+					cat.descripcion
+					,cat.colores.propio
+					,[...SqS('.cat-items-lista',{from:el}).children].reverse().map(itemEl=>{
+						let itemID=itemEl.dataset.id;
+						return [filtrablesIndexados[itemID].descripcion,itemID];
+					})
+					,cat.id
+				]
+			})
+			,lista:[...gEt('todo').children].map(el=>el.dataset.id)
+		})))
+	}]);
+	enlace.click();
+	enlace.remove();
+}
+
+function cargar(){
+	Swal.fire({
+		title: 'Cuidado',
+		text: "El archivo cargado va a reemplazar todo lo que está actualmente en la aplicación. ¿Desea proceder?",
+		icon: 'warning',
+		showCancelButton: true,
+		confirmButtonText: 'Sí',
+		cancelButtonText: 'No'
+	}).then((result) => {
+		if (result.isConfirmed) {
+			D.body.appendChild(cargarInput);
+			cargarInput.click();
+			D.body.removeChild(cargarInput);
+		}
+	})
+}
+
+function eliminar() {
+	filtrablesIndexados[this.closest('.filtrable').dataset.id].eliminar();
+}
+
 // * UI
 
 let catTexto=gEt('cat-texto');
@@ -273,9 +364,6 @@ gEt('cat-nueva').onclick=()=>{
 				,['INPUT',{
 					type:'color'
 					,id:'cat-nueva-color'
-					/* ,onchange:function(){
-						if(tinycolor(this.value).)
-					} */
 				}]
 			]
 		}),
@@ -294,8 +382,6 @@ gEt('cat-nueva').onclick=()=>{
 				catTexto.oninput();
 
 				new Categoria(...value);
-				// sortable('#cat-items');
-
 			}
 		})
 }
@@ -322,29 +408,14 @@ D.body.addEventListener('change', e => {
 
 // * Ordenamiento
 
-// // TODO cooler placeholders
-/* sortable('#cat-items',{
-	handle:HANDLE_CLASS
-	,placeholder:PLACEHOLDERS.categoria
-}); */
 new Sortable(catItems,{
 	handle:HANDLE_CLASS
 	
 	,animation:150
-	// ,placeholder:PLACEHOLDERS.categoria
 });
-
-/* sortable('#todo',{
-	handle:HANDLE_CLASS
-	,placeholder:PLACEHOLDERS.item
-	,acceptFrom:'#todo, .cat-items-lista'
-}); */
 
 new Sortable(gEt('todo'),{
 	handle:HANDLE_CLASS
-	// ,placeholder:PLACEHOLDERS.item
-	// ,acceptFrom:'#todo, .cat-items-lista'
-	
 	,animation:150
 	,group:"todo"
 
@@ -352,15 +423,13 @@ new Sortable(gEt('todo'),{
 
 gEt('hamburguesa-categorias-label').ondragenter=clickPropio;
 gEt('hamburguesa-categorias').ondragenter=clickPropio;
-cancelarElemento.ondragenter=()=>{
-	console.log('drag ñeft')
+/* cancelarElemento.ondragenter=()=>{
 	cancelar=true;
-}
+} */
 
 
 // * Pruebas
 
-// for(let cat of [['Facultad','#3f48d8',['molestar a la profe de PyE otra vez','inscribirme a IE 💡','proyecto AD de Java']],['Trabajo','#e2c254',['mandarle mail a Juan','volver a hablar con Latincloud por las respuestas automáticas','llamar a Pedro']],['Casa','#5f96a0',['barrer','limpiar el escritorio']]]){
-// 	new Categoria(...cat);
-// }
-// sortable('#cat-items');
+for(let cat of [['Facultad','#3f48d8',['molestar a la profe de PyE otra vez','inscribirme a IE 💡','proyecto AD de Java']],['Trabajo','#e2c254',['mandarle mail a Juan','volver a hablar con Latincloud por las respuestas automáticas','llamar a Pedro']],['Casa','#5f96a0',['barrer','limpiar el escritorio']]]){
+	new Categoria(...cat);
+}
