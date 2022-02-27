@@ -10,7 +10,11 @@
 
 /* Elementos */
 
-html{
+* {
+  transition: color 1s,background-color 1s;
+}
+
+html,body{
 	overflow: hidden;
 }
 	body {
@@ -77,9 +81,23 @@ html{
 				flex-direction: column;
 				padding: 1rem;
 				gap: 1rem; */
+
+				/* display: grid; */
+				/* grid-template-columns: repeat(4,1fr); */
+				/* grid-template-rows: var(--header-size); */
+				
+				gap: 1rem;
+				padding: 1rem;
+
+				display: flex;
+				flex-wrap: wrap;
+				align-content: baseline;
 			}
 				#hamburguesa-opciones:checked ~ #opc{
 					left: 0;
+				}
+				#opc > * {
+					height: var(--header-size);
 				}
 			#cat {
 				/* Hamburguesa */
@@ -235,4 +253,22 @@ html{
 	color:black;
 	text-shadow: 1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
 	font-weight: bolder;
+}
+
+
+@media screen and (min-aspect-ratio: 13/9) {
+	#opc {
+		grid-template-columns: repeat(4,1fr);
+	}
+		#opc > * {
+			width: calc(25% - calc(3rem / 4));
+		}
+}
+@media screen and (max-aspect-ratio: 13/9) {
+	#opc {
+		grid-template-columns: repeat(2,1fr);
+	}
+		#opc > * {
+			width: calc(50% - 0.5rem);
+		}
 }
