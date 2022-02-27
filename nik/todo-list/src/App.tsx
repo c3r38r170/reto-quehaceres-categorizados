@@ -100,8 +100,11 @@ function App() {
   const handleClickFilterMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   }
-  const handleFilter = (filter: string) => {
-    setFilter(filter)
+  const handleFilter = (filt: string) => {
+    console.info(filt)
+    if(filt === '' ) {
+      setFilter('')
+    } else setFilter(filt)
     setAnchorEl(null)
   }
   //Misc
@@ -126,12 +129,14 @@ function App() {
     handleClose()
   }
   const handleCompleteTask = (index: number, id: number) => {
-    setCompletedList([...completedList, list[index]])
-    setList(list.filter(item => item.id !== id))
+    const item = list.filter((task: iTask) => task.id === id)
+    setCompletedList([...completedList, item[0]])
+    setList(list.filter(task => task.id !== id))
   }
   const handleMoveToActive = (index: number, id: number) => {
-    setList([...list, completedList[index]])
-    setCompletedList(list.filter(item => item.id !== id))
+    const item = completedList.filter((task: iTask) => task.id === id)
+    setList([...list, item[0]])
+    setCompletedList(list.filter(task => task.id !== id))
   }
   
   return (
@@ -171,7 +176,7 @@ function App() {
                 label="Pick a date"
                 value={date}
                 onChange={(newValue) => {
-                  setDate(newValue);
+                  setDate(newValue)
                 }}
                 renderInput={(params) => <TextField {...params} fullWidth  sx={{mb: 2}}/>}
               />
@@ -210,6 +215,7 @@ function App() {
                 'aria-labelledby': 'basic-button',
               }}
             >
+              <MenuItem onClick={() => handleFilter('')}>Reset</MenuItem>
               <MenuItem onClick={() => handleFilter('Work')}>Work</MenuItem>
               <MenuItem onClick={() => handleFilter('University')}>University</MenuItem>
               <MenuItem onClick={() => handleFilter('Other')}>Other</MenuItem>
@@ -233,6 +239,12 @@ function App() {
               if(search === ''){
                 return task
               } else if (task.taskName.toLowerCase().includes(search.toLowerCase())) {
+                return task
+              }
+            }).filter((task) => {
+              if(filter === '') {
+                return task
+              } else if (task.taskType === filter) {
                 return task
               }
             }).map((task, index) => {
@@ -288,9 +300,9 @@ function App() {
                     }
                     action={
                       <>
-                        {/* <IconButton onClick={()=>handleMoveToActive(index, task.id)}>
+                        <IconButton onClick={()=>handleMoveToActive(index, task.id)}>
                           <CheckIcon/>
-                        </IconButton> */}
+                        </IconButton>
                         <IconButton onClick={()=> setCompletedList(completedList.filter(item => item.id !== task.id))}>
                           <RemoveCircleOutlineIcon/>
                         </IconButton>
