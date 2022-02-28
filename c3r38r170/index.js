@@ -12,7 +12,7 @@ var cancelar=false;
 var cargarInput=createElement('INPUT',{
 	class:'hidden',
 	type:'file',
-	accept:'json',//TODO enforce
+	accept:'.json',//TODO enforce
 	onchange:function(){
 		var fr=new FileReader();
 		fr.onload=()=>{
@@ -366,6 +366,7 @@ gEt('cat-nueva').onclick=()=>{
 				,['INPUT',{
 					type:'color'
 					,id:'cat-nueva-color'
+					,value:tinycolor.random().toHexString()
 				}]
 			]
 		}),
