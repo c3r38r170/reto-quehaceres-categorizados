@@ -12,6 +12,7 @@ var cancelar=false;
 var cargarInput=createElement('INPUT',{
 	class:'hidden',
 	type:'file',
+	accept:'json',//TODO enforce
 	onchange:function(){
 		var fr=new FileReader();
 		fr.onload=()=>{
@@ -82,6 +83,7 @@ const ITEMS_DRAG_OPTIONS={
 // TODO edición, doble click
 
 class Filtrable{
+	// TODO localstorage
 	id;
 	descripcion;
 	descripcionNormalizada;
@@ -387,9 +389,23 @@ gEt('cat-nueva').onclick=()=>{
 }
 
 /* Modo oscuro para Sweetalert 2 */
-let mode=(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'default';
-gEt('sweet-alert-2-css').href=
-	`https://cdn.jsdelivr.net/npm/@sweetalert2/theme-${mode}@5/${mode}.css`;
+var modo=localStorage.getItem('modo')||((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'default');
+function cambiarModo(modoEnviado){
+	if(!modoEnviado){
+		modoEnviado=modo=='default'?'dark':'default';
+	}
+
+	gEt('sweet-alert-2-css').href=
+		`https://cdn.jsdelivr.net/npm/@sweetalert2/theme-${modoEnviado}@5/${modoEnviado}.css`;
+
+	D.body.parentNode.classList.remove(modo);
+	D.body.parentNode.classList.add(modoEnviado);
+
+	modo=modoEnviado;
+
+	localStorage.setItem('modo',modo);
+}
+cambiarModo(modo);
 
 D.body.addEventListener('change', e => {
 	let target=e.target;
@@ -418,7 +434,7 @@ new Sortable(gEt('todo'),{
 	handle:HANDLE_CLASS
 	,animation:150
 	,group:"todo"
-
+	,draggable:'.item'
 });
 
 gEt('hamburguesa-categorias-label').ondragenter=clickPropio;
@@ -429,6 +445,7 @@ gEt('hamburguesa-categorias').ondragenter=clickPropio;
 
 
 // * Pruebas
+// TODO bug
 
 for(let cat of [['Facultad','#3f48d8',['molestar a la profe de PyE otra vez','inscribirme a IE 💡','proyecto AD de Java']],['Trabajo','#e2c254',['mandarle mail a Juan','volver a hablar con Latincloud por las respuestas automáticas','llamar a Pedro']],['Casa','#5f96a0',['barrer','limpiar el escritorio']]]){
 	new Categoria(...cat);
