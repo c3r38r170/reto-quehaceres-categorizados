@@ -175,7 +175,7 @@ html,body{
 								display: flex;
 								gap: 0.5em;
 							}
-								.cat-items-summary-botones > button{
+								.cat-items-eliminar{
 									height: 1.5rem;
 									line-height: 0;
 								}
@@ -209,6 +209,8 @@ html,body{
 								padding: 0.5rem;
 								border: solid var(--border-width) var(--border-color);
 								border-radius: var(--border-radius);
+
+								display: grid;grid-template: "a b c" / auto 1fr auto;
 							}
 								.item > .texto-legible{
 									margin-left: .5rem;
@@ -217,9 +219,11 @@ html,body{
 										text-decoration: line-through;
 										color:#444;
 									}
-								.item > .cat-items-agarrar{
-									float: right;
-								}
+								.item-botones{
+									display: flex;
+									gap: 0.5em;
+									margin: auto;
+								} 
 		.hamburguesa-label{
 			position: absolute;
 			top: 0;right: 0;left: 0;bottom: 0;
@@ -252,6 +256,7 @@ html,body{
 					position: absolute;
 					right: calc(100% + 0.5rem);
 					font-weight: bold;
+					line-height: 250%;
 				}
 		#cancelar{			
 			font-family: FontAwesome;

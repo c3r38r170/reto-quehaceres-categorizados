@@ -1,6 +1,7 @@
 // * Variables Globales
 
 var catItems=gEt('cat-items')
+var todo=gEt('todo')
 var listaPrincipal=[];
 var filtrablesIndexados={};
 var categorias=[];
@@ -27,7 +28,7 @@ var cargarInput=createElement('INPUT',{
 
 			Swal.fire({
 				icon: 'success',
-				title: 'Your work has been saved',
+				title: 'Datos cargados',
 				showConfirmButton: false,
 				timer: 1500
 			});
@@ -67,15 +68,14 @@ const ITEMS_DRAG_OPTIONS={
 		,put:'false'
 	}
 	,animation:150
-	,onEnd:(e)=>{
-		console.log('onedn')
+	/* ,onEnd:(e)=>{
 		if(cancelar){
 			e.item.remove();
 			cancelar=false;
 		}
 
 		cancelarElemento.classList.remove('cancelar-mostrar');
-	}
+	} */
 };
 
 // * Clases
@@ -83,7 +83,6 @@ const ITEMS_DRAG_OPTIONS={
 // TODO edición, doble click
 
 class Filtrable{
-	// TODO localstorage
 	id;
 	descripcion;
 	descripcionNormalizada;
@@ -93,7 +92,6 @@ class Filtrable{
 		filtrablesIndexados[this.id]=this;
 		
 		this.descripcion=descripcion;
-		console.log(arguments);
 		this.descripcionNormalizada=normalizarTexto(this.descripcion);
 		
 		this.elementoHTML=elementoHTML;
@@ -136,7 +134,6 @@ class Categoria extends Filtrable{
 														classList:[
 															'fas','fa-trash-can','cat-items-eliminar'
 														]
-														,onclick:eliminar
 													}
 												]
 												,[
@@ -179,18 +176,10 @@ class Categoria extends Filtrable{
 		
 	}
 	eliminar(){
-		// for (const itemID of this.items) {
-			// TODO delegar a Item
-			for(let item of [...SqS(
-				this.items.map(itemID=>{
-					delete filtrablesIndexados[itemID];
-					return `[data-id="${itemID}"]`;
-				}).join(',')
-				,{n:ALL}
-			)]){
-				item.remove();
-			}
-		// }
+		for (const itemID of this.items) {
+			filtrablesIndexados[itemID].eliminar();
+		}
+
 		this.elementoHTML.remove();
 		delete filtrablesIndexados[this.id];
 	}
@@ -228,11 +217,36 @@ class Item extends Filtrable{
 					}
 				]
 				,[
-					'SPAN'
-					,{class:'cat-items-agarrar'}
+					'DIV'
+					,{
+						class:'item-botones'
+						,children: [
+							[
+								'BUTTON'
+								,{
+									classList:[
+										'fas','fa-trash-can','cat-items-eliminar'
+									]
+								}
+							]
+							,[
+								'SPAN'
+								,{class:'cat-items-agarrar'}
+							]
+						]
+					}
 				]
 			]
 		}),id);
+	}
+	
+	eliminar(){
+		
+		for(let item of [...SqS(`[data-id="${this.id}"]`,{n:ALL})]){
+			item.remove();
+		}
+
+		delete filtrablesIndexados[this.id];
 	}
 }
 
@@ -305,21 +319,7 @@ function descargar(){
 	let enlace=addElement(D.body,['A',{
 		download:new Date().toISOString().slice(0, 10)+'.json',
 		class:'hidden',
-		href:'data:application/json;base64,'+btoa(encodeURI(JSON.stringify({
-			categorias:[...catItems.children].reverse().map(el=>{
-				let cat=filtrablesIndexados[el.dataset.id]
-				return [
-					cat.descripcion
-					,cat.colores.propio
-					,[...SqS('.cat-items-lista',{from:el}).children].reverse().map(itemEl=>{
-						let itemID=itemEl.dataset.id;
-						return [filtrablesIndexados[itemID].descripcion,itemID];
-					})
-					,cat.id
-				]
-			})
-			,lista:[...gEt('todo').children].map(el=>el.dataset.id)
-		})))
+		href:serializar()
 	}]);
 	enlace.click();
 	enlace.remove();
@@ -342,8 +342,22 @@ function cargar(){
 	})
 }
 
-function eliminar() {
-	filtrablesIndexados[this.closest('.filtrable').dataset.id].eliminar();
+function serializar() {
+	return 'data:application/json;base64,'+btoa(encodeURI(JSON.stringify({
+		categorias:[...catItems.children].reverse().map(el=>{
+			let cat=filtrablesIndexados[el.dataset.id]
+			return [
+				cat.descripcion
+				,cat.colores.propio
+				,[...SqS('.cat-items-lista',{from:el}).children].reverse().map(itemEl=>{
+					let itemID=itemEl.dataset.id;
+					return [filtrablesIndexados[itemID].descripcion,itemID];
+				})
+				,cat.id
+			]
+		})
+		,lista:[...todo.children].map(el=>el.dataset.id)
+	})))
 }
 
 // * UI
@@ -423,6 +437,28 @@ D.body.addEventListener('change', e => {
 
 })
 
+todo.onclick=(e)=>{
+	if(e.target.classList.contains('cat-items-eliminar'))
+		e.target.closest('.item').remove();
+}
+
+catItems.onclick=e=>{
+	
+	if(e.target.classList.contains('cat-items-eliminar'))
+		Swal.fire({
+			title: 'Cuidado',
+			text: "Esta acción no se puede deshacer. ¿Está seguro que desea realizar la eliminación?",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Sí',
+			cancelButtonText: 'No'
+		}).then((result) => {
+			if (result.isConfirmed) {
+				filtrablesIndexados[e.target.closest('.filtrable').dataset.id].eliminar();
+			}
+		})
+}
+
 // * Ordenamiento
 
 new Sortable(catItems,{
@@ -431,7 +467,7 @@ new Sortable(catItems,{
 	,animation:150
 });
 
-new Sortable(gEt('todo'),{
+new Sortable(todo,{
 	handle:HANDLE_CLASS
 	,animation:150
 	,group:"todo"
@@ -448,6 +484,6 @@ gEt('hamburguesa-categorias').ondragenter=clickPropio;
 // * Pruebas
 // TODO bug
 
-for(let cat of [['Facultad','#3f48d8',['molestar a la profe de PyE otra vez','inscribirme a IE 💡','proyecto AD de Java']],['Trabajo','#e2c254',['mandarle mail a Juan','volver a hablar con Latincloud por las respuestas automáticas','llamar a Pedro']],['Casa','#5f96a0',['barrer','limpiar el escritorio']]]){
+for(let cat of [['Facultad','#3f48d8',[['molestar a la profe de PyE otra vez','a'],['inscribirme a IE 💡','b'],['proyecto AD de Java','c']]],['Trabajo','#e2c254',[['mandarle mail a Juan','d'],['volver a hablar con Latincloud por las respuestas automáticas','e'],['llamar a Pedro','f']]],['Casa','#5f96a0',[['barrer','g'],['limpiar el escritorio','h']]]]){
 	new Categoria(...cat);
 }
