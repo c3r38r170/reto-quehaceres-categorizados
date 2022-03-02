@@ -1,3 +1,5 @@
+// TODO PWA
+
 // * Variables Globales
 
 var catItems=gEt('cat-items')
@@ -20,11 +22,10 @@ var cargarInput=createElement('INPUT',{
 			for(let categoria of categorias){
 				categoria.eliminar();
 			}
+			categorias=[];
 
-			let info=JSON.parse(decodeURI(fr.result));
-			for (const categoria of info.categorias) {
-				new Categoria(...categoria);
-			}
+			deserializarYCargar(fr.result);
+			localStorage.setItem('datos',fr.result);
 
 			Swal.fire({
 				icon: 'success',
@@ -58,7 +59,9 @@ const PLACEHOLDERS={
 	})
 };
 const HANDLE_CLASS='.cat-items-agarrar';
-// TODO ghost class
+const ITEMS_DRAG_OPTIONS_ONEND=()=>{
+	actualizarListaPrincipal();
+}
 const ITEMS_DRAG_OPTIONS={
 	handle:HANDLE_CLASS
 	
@@ -68,14 +71,17 @@ const ITEMS_DRAG_OPTIONS={
 		,put:'false'
 	}
 	,animation:150
-	/* ,onEnd:(e)=>{
+	,onEnd:ITEMS_DRAG_OPTIONS_ONEND
+	/*(e)=>{
+		guardar();
+
 		if(cancelar){
 			e.item.remove();
 			cancelar=false;
 		}
 
 		cancelarElemento.classList.remove('cancelar-mostrar');
-	} */
+	}*/
 };
 
 // * Clases
@@ -84,6 +90,7 @@ class Filtrable{
 	id;
 	descripcion;
 	descripcionNormalizada;
+	// TODO revisar que esto funcione bien, sobre todo para los items, ya que se pierde la referencia
 	elementoHTML;
 	constructor(descripcion, elementoHTML,id){
 		this.id=id||Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -172,39 +179,46 @@ class Categoria extends Filtrable{
 		this.colores.items=tcColor[tcColor.isDark()?'lighten':'darken'](10).toHexString();
 
 		// * Solo cuando se importa
-		if(items)
+		if(items){
 			for (const item of items) {
 				this.aniadirItem(...item);
 			}
+		}else guardar();
 
 		new Sortable(SqS('.cat-items-lista',{from:this.elementoHTML}),ITEMS_DRAG_OPTIONS);
 		
 	}
 	eliminar(){
 		for (const itemID of this.items) {
-			filtrablesIndexados[itemID].eliminar();
+			filtrablesIndexados[itemID].eliminar(false);
 		}
 
 		this.elementoHTML.remove();
 		delete filtrablesIndexados[this.id];
+		
+		guardar();
 	}
 	
 	aniadirItem(descripcion,id){
-		let newItem=new Item(descripcion,id);
+		let newItem=new Item(descripcion,this.id,id);
 		newItem.elementoHTML.style.background=this.colores.items;
 		this.items.push(newItem.id);
 
 		let container=SqS('.cat-items-lista',{from:this.elementoHTML})
 		container.prepend(newItem.elementoHTML);
+		
+		if(!id)
+			guardar();
 	}
 	quitarItem(id){
-		// TODO
 		this.items.splice(this.items.indexOf(id));
 	}
 }
 
 class Item extends Filtrable{
-	constructor(descripcion,id){
+	categoriaID;
+
+	constructor(descripcion,categoriaID,id){
 		super(descripcion,createElement('DIV',{
 			classList:['item','filtrable']
 			,children: [
@@ -245,15 +259,34 @@ class Item extends Filtrable{
 				]
 			]
 		}),id);
+
+		this.categoriaID=categoriaID;
 	}
 	
-	eliminar(){
+	eliminar(hayQueGuardar=true){
 		
 		for(let item of [...SqS(`[data-id="${this.id}"]`,{n:ALL})]){
 			item.remove();
 		}
 
 		delete filtrablesIndexados[this.id];
+		
+		if(hayQueGuardar){
+			filtrablesIndexados[this.categoriaID].quitarItem(this.id);
+			guardar();
+		}
+	}
+	
+	setDescripcion(descripcion,elementoEditado){
+		super.setDescripcion(descripcion);
+		if(elementoEditado){
+			// TODO fix que si edito en la lista comun no anda
+			let todosLosElementos=[...SqS(`[data-id="${this.id}"] .texto-legible`,{n:ALL})];
+			todosLosElementos.splice(todosLosElementos.findIndex(el=>el==elementoEditado));
+			for(let texto of todosLosElementos){
+				texto.innerText=this.descripcion;
+			}
+		}
 	}
 }
 
@@ -327,15 +360,15 @@ function clickPropio(){
 
 function descargar(){
 	let enlace=addElement(D.body,['A',{
-		download:new Date().toISOString().slice(0, 10)+'.json',
+		download:'quehaceres-categorizados-'+new Date().toISOString().slice(0, 10)+'.json',
 		class:'hidden',
-		href:serializar()
+		href:'data:application/json;base64,'+btoa(serializar())
 	}]);
 	enlace.click();
 	enlace.remove();
 }
 
-function cargar(){
+function empezarCargaDeArchivo(){
 	Swal.fire({
 		title: 'Cuidado',
 		text: "El archivo cargado va a reemplazar todo lo que está actualmente en la aplicación. ¿Desea proceder?",
@@ -353,21 +386,44 @@ function cargar(){
 }
 
 function serializar() {
-	return 'data:application/json;base64,'+btoa(encodeURI(JSON.stringify({
-		categorias:[...catItems.children].reverse().map(el=>{
+	return encodeURI(JSON.stringify({
+		categorias:[...catItems.children].map(el=>{
 			let cat=filtrablesIndexados[el.dataset.id]
 			return [
 				cat.descripcion
 				,cat.colores.propio
-				,[...SqS('.cat-items-lista',{from:el}).children].reverse().map(itemEl=>{
+				,[...SqS('.cat-items-lista',{from:el}).children].map(itemEl=>{
 					let itemID=itemEl.dataset.id;
 					return [filtrablesIndexados[itemID].descripcion,itemID];
 				})
 				,cat.id
 			]
 		})
-		,lista:[...todo.children].map(el=>el.dataset.id)
-	})))
+		,lista:listaPrincipal//[...todo.children].splice(1).map(el=>el.dataset.id)
+	}));
+}
+
+function guardar(){
+	localStorage.setItem('datos',serializar());
+}
+
+function deserializarYCargar(cadena){
+	let info=JSON.parse(decodeURI(cadena));
+	
+	for (const categoria of info.categorias.reverse()) {
+		new Categoria(categoria[0],categoria[1],categoria[2].reverse());
+	}
+
+	listaPrincipal=[...info.lista];
+	let todoTitulo=todo.firstElementChild;
+	for (const itemID of info.lista.reverse()) {
+		todoTitulo.after(SqS(`[data-id="${itemID}"]`).cloneNode(true));
+	}
+}
+
+function actualizarListaPrincipal(){
+	listaPrincipal=[...todo.children].splice(1).map(el=>el.dataset.id);
+	guardar();
 }
 
 // * UI
@@ -448,8 +504,10 @@ D.body.addEventListener('change', e => {
 })
 
 todo.onclick=(e)=>{
-	if(e.target.classList.contains('cat-items-eliminar'))
+	if(e.target.classList.contains('cat-items-eliminar')){
 		e.target.closest('.item').remove();
+		actualizarListaPrincipal();
+	}
 }
 
 catItems.onclick=e=>{
@@ -472,16 +530,20 @@ catItems.onclick=e=>{
 todo.oninput=
 	catItems.oninput=
 	e=>{
-		if(e.target.classList.contains('texto-legible'))
-			filtrablesIndexados[e.target.closest('.filtrable').dataset.id].setDescripcion(e.target.innerText);
+		let tar=e.target;
+		if(tar.classList.contains('texto-legible')){
+			let closestFiltrable=tar.closest('.filtrable');
+			filtrablesIndexados[closestFiltrable.dataset.id].setDescripcion(tar.innerText,closestFiltrable);
+			guardar();
+		}
 	}
 
 // * Ordenamiento
 
 new Sortable(catItems,{
 	handle:HANDLE_CLASS
-	
 	,animation:150
+	,onEnd:()=>guardar()
 });
 
 new Sortable(todo,{
@@ -489,6 +551,7 @@ new Sortable(todo,{
 	,animation:150
 	,group:"todo"
 	,draggable:'.item'
+	,onEnd:ITEMS_DRAG_OPTIONS_ONEND
 });
 
 gEt('hamburguesa-categorias-label').ondragenter=clickPropio;
@@ -497,9 +560,15 @@ gEt('hamburguesa-categorias').ondragenter=clickPropio;
 	cancelar=true;
 } */
 
+// * Carga de localStorage
+let datos=localStorage.getItem('datos');
+if(datos)
+	deserializarYCargar(datos);
 
-// * Pruebas
 
-for(let cat of [['Facultad','#3f48d8',[['molestar a la profe de PyE otra vez','a'],['inscribirme a IE 💡','b'],['proyecto AD de Java','c']]],['Trabajo','#e2c254',[['mandarle mail a Juan','d'],['volver a hablar con Latincloud por las respuestas automáticas','e'],['llamar a Pedro','f']]],['Casa','#5f96a0',[['barrer','g'],['limpiar el escritorio','h']]]]){
-	new Categoria(...cat);
-}
+// // * Pruebas
+
+// for(let cat of [['Facultad','#3f48d8',[['molestar a la profe de PyE otra vez','a'],['inscribirme a IE 💡','b'],['proyecto AD de Java','c']]],['Trabajo','#e2c254',[['mandarle mail a Juan','d'],['volver a hablar con Latincloud por las respuestas automáticas','e'],['llamar a Pedro','f']]],['Casa','#5f96a0',[['barrer','g'],['limpiar el escritorio','h']]]]
+// ){
+// 	new Categoria(...cat);
+// }
