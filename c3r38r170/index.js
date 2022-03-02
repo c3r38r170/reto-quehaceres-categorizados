@@ -90,7 +90,7 @@ class Filtrable{
 	id;
 	descripcion;
 	descripcionNormalizada;
-	// TODO revisar que esto funcione bien, sobre todo para los items, ya que se pierde la referencia
+	// TODO ver si es necesario en Item y si lo dejamos solo para Categoria
 	elementoHTML;
 	constructor(descripcion, elementoHTML,id){
 		this.id=id||Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -160,7 +160,6 @@ class Categoria extends Filtrable{
 						]]
 						,['DIV',{class:'cat-items-lista-wraper',children:[
 							['INPUT',{oninput:buscar}]
-							// TODO onclick
 							,['BUTTON',{classList:['fas','fa-plus'],onclick:crearItem}]
 							,['DIV',{class:'cat-items-lista'}]
 						]}]
@@ -169,7 +168,6 @@ class Categoria extends Filtrable{
 			)
 			,id
 		);
-		// TODO dry this
 		catItems.prepend(this.elementoHTML);
 
 		categorias.push(this);
