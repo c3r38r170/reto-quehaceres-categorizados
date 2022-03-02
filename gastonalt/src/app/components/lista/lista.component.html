@@ -1,0 +1,79 @@
+<mat-accordion #accordion="matAccordion" [multi]="true">
+    <div style="display: flex;">
+        <mat-form-field style="z-index:99; width: 79%; margin-top: -1em; margin-bottom: -.8em;" appearance="fill">
+            <mat-label>Elige la categoría para filtrar</mat-label>
+            <mat-select (selectionChange)="filtroChange($event)" [(value)]="categoriaSelected">
+                <!--
+        <mat-option value="c">
+            Crear nueva categoría
+            <mat-icon style="cursor: pointer; color: #BBB; position: absolute; right: 0px; top:.4em">plus_one</mat-icon>
+        </mat-option>
+        -->
+                <mat-option value="a">
+                    Todas las categorías
+                </mat-option>
+                <mat-option *ngFor="let categoria of categorias" value="{{categoria.id}}">
+                    {{categoria.descripcion}}
+                    <i *ngIf="categoria.id != 0" class="fa-solid fa-circle fa-xl" [ngStyle]="{'color': categoria.color}" style="cursor: pointer; position: absolute; right: 3.6em; top:1em; scale: 300%;"></i>
+                    <i *ngIf="categoria.id != 0" class="fa-solid fa-pencil fa-xl" style="cursor: pointer; color: #BBB; position: absolute; right: 2em; top:1em; scale: 300%;" matTooltip="Editar categoría" (click)="editar(categoria)"></i>
+                    <i *ngIf="categoria.id != 0" style="cursor: pointer; color: #BBB; position: absolute; right: .4em; top:1em; scale: 300%;" class="fa-solid fa-trash fa-xl" matTooltip="Borrar categoría" (click)="borrarCategoria(categoria.id)"></i>
+                    <!-- <mat-icon style="cursor: pointer; color: #BBB; position: absolute; right: 0px; top:.4em" mat-list-icon matSuffix matTooltip="Borrar categoría" (click)="borrarCategoria(categoria.id)">delete</mat-icon> -->
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <div *ngIf="expandall" matTooltip="Expandir/Colapsar todo" (click)="accordion.openAll(); expandall=!expandall" style="z-index:99; width: 10%; transform: translate(10%,-14px); height: 3.65em; border-bottom: 1px solid #999; background-color: #F5F5F5; display: flex; border-radius: .3em;   align-items: center; justify-content: center; cursor: pointer;">
+            <div style="transform: translateY(3px) scale(.8);">
+                <mat-icon>keyboard_arrow_down</mat-icon>
+            </div>
+        </div>
+        <div *ngIf="!expandall" matTooltip="Expandir/Colapsar todo" (click)="accordion.closeAll();expandall=!expandall" style="z-index:99; width: 10%; transform: translate(10%,-14px); height: 3.65em; border-bottom: 1px solid #999; background-color: #F5F5F5; display: flex; border-radius: .3em;   align-items: center; justify-content: center; cursor: pointer;">
+            <div style="transform: translateY(3px) scale(.8);">
+                <mat-icon>keyboard_arrow_up</mat-icon>
+            </div>
+        </div>
+        <div matTooltip="Crear categoría [F2]" (click)="agregarCategoria()" style="z-index:99; width: 10%; transform: translate(12%,-14px); height: 3.65em; border-bottom: 1px solid #999; background-color: #F5F5F5; display: flex; border-radius: .3em;   align-items: center; justify-content: center; cursor: pointer;">
+            <div style="transform: translateY(3px) scale(.8);">
+                <mat-icon>library_add</mat-icon>
+            </div>
+        </div>
+
+        <div class="hintCategorias" style="cursor: pointer;" *ngIf="todoArray.length < 1 && !cerrarHintCategorias" (click)="cerrarHintCategorias = true">
+            Añadir categorías!
+        </div>
+    </div>
+    <div *ngIf="todoArray.length !== contador">
+        <mat-list *ngFor="let todo of arrayAMostrar" style="padding: 0px; /*Hacia algo raro aca xD*/">
+            <div *ngIf="!todo.borrado" style="margin: .5em 0;">
+                <mat-expansion-panel [ngClass]="{ 'div-check-true': todo.check===true} " hideToggle (opened)="panelOpenState = true" (closed)="panelOpenState = false">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            <mat-checkbox value="todo.check" [checked]="todo.check" (change)="changeTodo(todo)" [ngClass]="{ 'check-true': todo.check===true} "><span>{{todo.descripcion}}</span></mat-checkbox>
+                            <i class="fa-solid fa-pencil fa-xl" style="cursor: pointer; position: absolute; right: 2em; top:1em; scale: 300%;" matTooltip="Editar TODO" (click)="editarTodo(todo)"></i>
+                            <mat-icon style="cursor: pointer; position: absolute; right: .5em; top:.5em" matSuffix (click)="borrar(todo)" matTooltip="Borrar item">remove_circle_outline</mat-icon>
+                            <i class="fa-solid fa-circle fa-xl" [ngStyle]="{'color': todo.categoria.color}" style="cursor: pointer; position: absolute; right: 3.6em; top:1em; scale: 300%;"></i>
+                        </mat-panel-title>
+                        <!--
+                    <mat-panel-description>
+                        Estado: {{panelOpenState ? 'open' : 'closed'}}
+                    </mat-panel-description>
+                    -->
+                    </mat-expansion-panel-header>
+                    <div style="display: flex;">
+                        <div style="width: 40%;">
+                            Cambiar categoría:
+                        </div>
+                        <mat-form-field style="width: 60%; margin-top: -1em; margin-bottom: -.8em;" appearance="fill">
+                            <mat-label>{{todo.categoria.descripcion}}</mat-label>
+                            <mat-select (selectionChange)="categoriaChange($event, todo)" [(value)]="changeCategoria">
+                                <mat-option *ngFor="let categoria of categorias" value="{{categoria.id}}">
+                                    {{categoria.descripcion}}
+                                    <i class="fa-solid fa-circle fa-xl" [ngStyle]="{'color': todo.categoria.color}" style="cursor: pointer; position: absolute; right: 1em; top:1em; scale: 300%;"></i>
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </mat-expansion-panel>
+            </div>
+        </mat-list>
+    </div>
+</mat-accordion>

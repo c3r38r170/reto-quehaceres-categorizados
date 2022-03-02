@@ -1,0 +1,42 @@
+.hint {
+    z-index: 5;
+    position: absolute;
+    content: '';
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    animation: animacion forwards 1s ease-in-out;
+}
+
+.example-spacer {
+    flex: 1 1 auto;
+}
+
+.flecha {
+    // animation: flecha 2s infinite ease-in-out;
+}
+
+@keyframes flecha {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(30px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.hint-out {
+    animation: animacion backwards 1s ease-in-out;
+}
+
+@keyframes animacion {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: .8;
+    }
+}

@@ -1,0 +1,18 @@
+<h1 mat-dialog-title>
+    Agregar/Editar una categoría</h1>
+<div mat-dialog-content>
+    <p>Nombre de la categoría:</p>
+    <mat-form-field appearance="fill">
+        <mat-label>Categoria:</mat-label>
+        <input matInput [(ngModel)]="data.categoria" cdkFocusInitial autocomplete="off">
+      </mat-form-field>
+        <mat-form-field>
+            <input matInput [ngxMatColorPicker]="picker" [formControl]="colorCtr" placeholder="Inserta un color">
+            <ngx-mat-color-toggle matSuffix [for]="picker"></ngx-mat-color-toggle>
+            <ngx-mat-color-picker #picker [touchUi]="touchUi" [color]="color"></ngx-mat-color-picker>
+        </mat-form-field>
+</div>
+<div mat-dialog-actions>
+    <button mat-button (click)="onNoClick()">Cancelar</button>
+    <button mat-button [mat-dialog-close]="data.categoria" *ngIf="data.categoria!==''">Guardar</button>
+</div>

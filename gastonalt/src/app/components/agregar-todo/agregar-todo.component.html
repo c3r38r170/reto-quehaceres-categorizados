@@ -1,0 +1,7 @@
+<form (keydown.enter)="enter($event)" [formGroup]="formTodo" style="z-index: 9999;">
+    <mat-form-field style="z-index: 9;width: 100%;background-color: white; border-radius: .4em;" appearance="outline">
+        <mat-label>Agrega un ítem!</mat-label>
+        <input matInput autocomplete="off" placeholder="Escribe el ítem aquí" formControlName="todoDescripcion" autofocus>
+        <mat-icon matSuffix (click)="agregarTodo()" matTooltip="También puedes agregarlo aprentando ENTER">add_circle</mat-icon>
+    </mat-form-field>
+</form>

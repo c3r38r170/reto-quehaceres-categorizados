@@ -1,0 +1,38 @@
+.check-true {
+    text-decoration: line-through;
+    opacity: .5;
+}
+
+.hintCategorias {
+    border-radius: 1em;
+    padding: 1.2em;
+    right: 14%;
+    top: 13em;
+    transform: translateY(3em);
+    position: absolute;
+    width: 5em;
+    color: white;
+    background-color: #333;
+}
+
+.hintCategorias::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -1em;
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 20px solid #333;
+    clear: both;
+    offset-rotate: 180deg;
+}
+
+.div-check-true {
+    pointer-events: none;
+}
+
+mat-checkbox {
+    pointer-events: all;
+}

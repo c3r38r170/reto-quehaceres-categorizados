@@ -1,0 +1,24 @@
+<div class="hint" *ngIf="hintClass" (click)="hintClass = false"></div>
+<div (click)="hintClass = false" *ngIf="hintClass" style="width:100%; height:100%; position:absolute; z-index:99; display: flex; align-items: center; justify-content: center;">
+    <img *ngIf="!mobile" class="flecha" src="../../../assets/img/curly-dotted-arrow.png" style="filter: invert(100%); transform: translate(23em,-3em);" width="13%">
+</div>
+<div (click)="hintClass = false" *ngIf="hintClass" style="width:100%; height:100%; position:absolute; z-index:99; display: flex; align-items: center; justify-content: center;">
+    <img *ngIf="mobile" src="../../../assets/img/curly-dotted-arrow.png" style="filter: invert(100%); transform: translateY(-6em);" width="150em">
+</div>
+<div (click)="hintClass = false" *ngIf="hintClass" style="font-size: 200%; flex: 1 0 auto; color:white; flex-wrap: wrap;z-index: 100; position: absolute; width: 100%; height: 100%; display:flex; align-items: center; justify-content: center;">
+    <div> Añade tu primer tarea para empezar! </div>
+</div>
+<mat-toolbar color="primary" style="margin-bottom: 1em;">
+    <button mat-icon-button>
+    <mat-icon matTooltip="Acerca de este proyecto" (click)="acercaDe()">done_outline</mat-icon>
+    </button>
+    <span>LISTA DE TAREAS</span>
+    <span class="example-spacer"></span>
+    <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
+    <mat-icon matTooltip="Sígueme en Github" (click)="abrirGithub()">favorite</mat-icon>
+    </button>
+</mat-toolbar>
+<div style="width: 70%; margin: auto;">
+    <app-agregar-todo [todoArray]="todos"></app-agregar-todo>
+    <app-lista [todoArray]="todos" *ngIf="!hintClass"></app-lista>
+</div>
