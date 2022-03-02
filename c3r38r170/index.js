@@ -60,7 +60,7 @@ const PLACEHOLDERS={
 };
 const HANDLE_CLASS='.cat-items-agarrar';
 const ITEMS_DRAG_OPTIONS_ONEND=()=>{
-	actualizarListaPrincipal();
+	actualizarListaPrincipalYGuardar();
 }
 const ITEMS_DRAG_OPTIONS={
 	handle:HANDLE_CLASS
@@ -196,11 +196,11 @@ class Categoria extends Filtrable{
 		this.elementoHTML.remove();
 		delete filtrablesIndexados[this.id];
 		
-		guardar();
+		actualizarListaPrincipalYGuardar();
 	}
 	
-	aniadirItem(descripcion,id){
-		let newItem=new Item(descripcion,this.id,id);
+	aniadirItem(descripcion,id,tildado){
+		let newItem=new Item(descripcion,this.id,id,tildado);
 		newItem.elementoHTML.style.background=this.colores.items;
 		this.items.push(newItem.id);
 
@@ -218,7 +218,7 @@ class Categoria extends Filtrable{
 class Item extends Filtrable{
 	categoriaID;
 
-	constructor(descripcion,categoriaID,id){
+	constructor(descripcion,categoriaID,id,checked=false){
 		super(descripcion,createElement('DIV',{
 			classList:['item','filtrable']
 			,children: [
@@ -226,6 +226,7 @@ class Item extends Filtrable{
 					'INPUT',
 					{
 						type: 'checkbox'
+						,checked
 					}
 				],
 				// TODO dry?
@@ -273,7 +274,7 @@ class Item extends Filtrable{
 		
 		if(hayQueGuardar){
 			filtrablesIndexados[this.categoriaID].quitarItem(this.id);
-			guardar();
+			actualizarListaPrincipalYGuardar();
 		}
 	}
 	
@@ -291,6 +292,7 @@ class Item extends Filtrable{
 }
 
 // * Funciones
+// TODO ordenar y categorizar
 
 function normalizarTexto(texto){
 	return texto.normalize("NFD").replace(REG_EXP.DIACRITICOS, "")
@@ -394,7 +396,7 @@ function serializar() {
 				,cat.colores.propio
 				,[...SqS('.cat-items-lista',{from:el}).children].map(itemEl=>{
 					let itemID=itemEl.dataset.id;
-					return [filtrablesIndexados[itemID].descripcion,itemID];
+					return [filtrablesIndexados[itemID].descripcion,itemID,itemEl.firstElementChild.checked];
 				})
 				,cat.id
 			]
@@ -421,7 +423,7 @@ function deserializarYCargar(cadena){
 	}
 }
 
-function actualizarListaPrincipal(){
+function actualizarListaPrincipalYGuardar(){
 	listaPrincipal=[...todo.children].splice(1).map(el=>el.dataset.id);
 	guardar();
 }
@@ -498,6 +500,8 @@ D.body.addEventListener('change', e => {
 				for (const otro of otros) {
 					otro.checked=target.checked;
 				}
+
+			guardar();
 		}
 	}
 
@@ -506,7 +510,7 @@ D.body.addEventListener('change', e => {
 todo.onclick=(e)=>{
 	if(e.target.classList.contains('cat-items-eliminar')){
 		e.target.closest('.item').remove();
-		actualizarListaPrincipal();
+		actualizarListaPrincipalYGuardar();
 	}
 }
 
