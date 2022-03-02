@@ -29,7 +29,6 @@ Y así.
 **Importante:**
 
 > Si bien yo lo llamo aplicación, la realidad es que pueden hacer cualquier tipo de programa. Desde una aplicación de consola hasta un sitio web, pasando por un empaquetado para escritorio o un simple script. **Todo vale.**
-
 Antes de empezar a diseñar y programar deberían **fork**ear este proyecto y crear una nueva carpeta con su apodo, seudónimo o nombre. Ahí va a quedar su proyecto terminado.
 
 Si bien estaría copado que desarrollen el proyecto en Git para poder ver su evolución, pueden desarrollarlo aparte y meter la versión final en la carpeta, ala *drag and drop*. Como les sea más cómodo.
