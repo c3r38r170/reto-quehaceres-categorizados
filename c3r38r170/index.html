@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="color-scheme" content="light dark">
+	<title>Quehaceres Categorizados</title>
+
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/holiday.css@0.9.8">
+	<link rel="stylesheet" id="sweet-alert-2-css">
+	<link rel="stylesheet" href="index.css">
+
+	<script src="https://unpkg.com/@c3r38r170/c3tools" defer></script>
+	<!-- <script src="https://unpkg.com/html5sortable" defer></script> -->
+	<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js" defer></script>
+	<script src="https://unpkg.com/tinycolor2" defer></script>
+
+	<script src="index.js" defer></script>
+</head>
+<body>
+	<header><h1>Quehaceres Categorizados</h1></header>
+
+	<input id="hamburguesa-opciones" class="fas fa-gear hamburguesa" type=checkbox>
+	<div id="opc" class=hamburguesa-menu>
+		<button onclick="descargar()">Descargar Información</button>
+		<button onclick="empezarCargaDeArchivo()">Cargar Información</button>
+		<button onclick="cambiarModo()">Cambiar Modo</button>
+	</div>
+	<label for="hamburguesa-opciones" id="hamburguesa-opciones-label" class=hamburguesa-label></label>
+
+	<div id="todo">
+		<div id="todo-titulo">Lista de quehaceres:</div>
+	</div>
+	
+	<input id="hamburguesa-categorias" class="fas fa-rectangle-list hamburguesa" type=checkbox>
+	<div id="cat" class=hamburguesa-menu>
+		<input type="text" id="cat-texto">
+		<button class="fas fa-plus" id="cat-nueva"></button>
+		<div id="cat-items"></div>
+	</div>
+	<label for="hamburguesa-categorias" id="hamburguesa-categorias-label" class=hamburguesa-label></label>
+
+	<!-- TODO -->
+	<div id="cancelar"></div>
+</body>
+</html>
