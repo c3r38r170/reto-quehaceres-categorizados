@@ -283,6 +283,10 @@ html,body{
 
 /* Filtrables */
 
+.sortable-ghost{
+	opacity:.5;
+}
+
 [data-id] button{
 	border-color:var(--border-color)
 }
