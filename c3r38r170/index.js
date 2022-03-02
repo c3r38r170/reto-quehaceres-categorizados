@@ -80,8 +80,6 @@ const ITEMS_DRAG_OPTIONS={
 
 // * Clases
 
-// TODO edición, doble click
-
 class Filtrable{
 	id;
 	descripcion;
@@ -91,11 +89,17 @@ class Filtrable{
 		this.id=id||Date.now().toString(36) + Math.random().toString(36).substring(2);
 		filtrablesIndexados[this.id]=this;
 		
+		this.setDescripcion(descripcion);
+
+		this.elementoHTML=elementoHTML;
+		this.elementoHTML.dataset.id=this.id;
+	}
+
+	setDescripcion(descripcion) {
+		
 		this.descripcion=descripcion;
 		this.descripcionNormalizada=normalizarTexto(this.descripcion);
 		
-		this.elementoHTML=elementoHTML;
-		this.elementoHTML.dataset.id=this.id;
 	}
 }
 
@@ -122,6 +126,7 @@ class Categoria extends Filtrable{
 									['SPAN',{
 										class:'texto-legible'
 										,innerText:descripcion
+										,contentEditable:true
 									}]
 									,[
 										'DIV'
@@ -209,11 +214,13 @@ class Item extends Filtrable{
 						type: 'checkbox'
 					}
 				],
+				// TODO dry?
 				[
 					'SPAN'
 					,{
 						innerText:descripcion
 						,class:'texto-legible'
+						,contentEditable:true
 					}
 				]
 				,[
@@ -260,6 +267,8 @@ function buscar(){
 	// * this es el input tipo texto.
 	// * La estructura es: this + botón + contenedor de elementos a filtrar
 
+	// ? ver los items al buscar por categoria
+
 	let valor=this.value.trim()
 		,accion;
 	if(valor){
@@ -268,12 +277,13 @@ function buscar(){
 		try{
 			regExp=new RegExp('.*?'+valor+'.*?','i');
 		}catch(e){
-			regExp=new RegExp(valor.replace(REG_EXP.ESCAPES, "\\$&"),'i');
+			// * Escapa el posible regexp inválido
+			regExp=new RegExp(`.*?${valor.replace(REG_EXP.ESCAPES, "\\$&")}.*?`,'i');
 		}
 		accion=elemento=>{
 			let filtrable=filtrablesIndexados[elemento.dataset.id];
 			if(
-				regExp.test(filtrable.descripcion)
+				regExp.test(filtrable.descripcionNormalizada)
 				==
 				elemento.classList.contains('hidden')
 			){
@@ -458,6 +468,13 @@ catItems.onclick=e=>{
 			}
 		})
 }
+
+todo.oninput=
+	catItems.oninput=
+	e=>{
+		if(e.target.classList.contains('texto-legible'))
+			filtrablesIndexados[e.target.closest('.filtrable').dataset.id].setDescripcion(e.target.innerText);
+	}
 
 // * Ordenamiento
 
