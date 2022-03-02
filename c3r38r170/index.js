@@ -482,7 +482,6 @@ gEt('hamburguesa-categorias').ondragenter=clickPropio;
 
 
 // * Pruebas
-// TODO bug
 
 for(let cat of [['Facultad','#3f48d8',[['molestar a la profe de PyE otra vez','a'],['inscribirme a IE 💡','b'],['proyecto AD de Java','c']]],['Trabajo','#e2c254',[['mandarle mail a Juan','d'],['volver a hablar con Latincloud por las respuestas automáticas','e'],['llamar a Pedro','f']]],['Casa','#5f96a0',[['barrer','g'],['limpiar el escritorio','h']]]]){
 	new Categoria(...cat);
